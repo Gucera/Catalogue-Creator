@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Harbourline Catalogue Studio · Case study</title>
+<meta name="description" content="Case study: a print-ready A4 catalogue builder, flyer editor and PDF compressor for a wholesaler's sales portal, rebuilt with fictional data in Next.js, React and TypeScript." />
+<meta property="og:title" content="Harbourline Catalogue Studio · Case study" />
+<meta property="og:description" content="A millimetre-exact catalogue engine, a flyer editor fed by the product database, and a PDF compressor. Rebuilt with fictional data." />
+<meta property="og:image" content="img/hero-pages.webp" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #0d1b2e;
+    --navy-2: #13263f;
+    --gold: #e9b44c;
+    --gold-soft: #f6e7c4;
+    --rust: #b4532a;
+    --ink: #18181b;
+    --muted: #52525b;
+    --faint: #71717a;
+    --line: #e4e4e7;
+    --paper: #faf8f4;
+    --card: #ffffff;
+    --teal: #7fa7b5;
+    --green: #10b981;
+    --red: #e11d48;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; }
+  code { font: 0.88em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #f1efe9; border: 1px solid #e7e3da; padding: 0.08em 0.38em; border-radius: 6px; }
+  .dark code { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .wrap { padding: 0 28px; } }
+
+  /* Nav */
+  .nav { position: sticky; top: 12px; z-index: 20; display: flex; justify-content: center; pointer-events: none; padding: 0 12px; }
+  .nav-pill { pointer-events: auto; display: flex; align-items: center; gap: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; background: rgba(13,27,46,0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+  .nav-pill::-webkit-scrollbar { display: none; }
+  .nav-pill a { flex: none; color: #d4d4d8; text-decoration: none; font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+  .nav-pill a:hover, .nav-pill a.active { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-pill .brand { color: var(--gold); font-weight: 600; }
+
+  /* Hero */
+  .hero { position: relative; background: var(--navy); color: #fff; margin-top: -56px; padding: 112px 0 72px; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(55% 50% at 80% 30%, #24507e 0%, transparent 70%), radial-gradient(40% 45% at 5% 95%, #1f6f78 0%, transparent 70%); opacity: 0.45; }
+  .hero .wrap { position: relative; display: grid; gap: 48px; align-items: center; }
+  @media (min-width: 960px) { .hero .wrap { grid-template-columns: 1.05fr 1fr; } }
+  .eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rust); }
+  .dark .eyebrow, .hero .eyebrow { color: var(--gold); }
+  h1, h2 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(42px, 7vw, 68px); line-height: 1.02; margin: 16px 0 0; }
+  h2 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; margin: 12px 0 0; max-width: 820px; }
+  h3 { font-size: 20px; margin: 0; }
+  h4 { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin: 0 0 6px; }
+  .dark h4 { color: #a1a1aa; }
+  .lead { font-size: 18px; color: #d4d4d8; max-width: 600px; margin: 22px 0 0; }
+  .sub { color: #a1a1aa; max-width: 600px; margin: 14px 0 0; font-size: 15px; }
+  .stack-line { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 12.5px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e4e4e7; }
+  .metrics { margin-top: 32px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 600px; }
+  @media (min-width: 640px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
+  .metric { border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); border-radius: 14px; padding: 12px 14px; }
+  .metric b { display: block; font-size: 24px; line-height: 1.15; font-weight: 600; color: #fff; }
+  .metric span { display: block; font-size: 12.5px; color: #a1a1aa; margin-top: 2px; line-height: 1.35; }
+  .hero-shot { border-radius: 14px; overflow: hidden; }
+  .hero-shot img { width: 100%; }
+
+  /* Sections */
+  section.block { padding: 84px 0; }
+  section.dark { background: var(--navy); color: #e4e4e7; }
+  section.dark h2, section.dark h3 { color: #fff; }
+  .intro { font-size: 18px; color: var(--muted); max-width: 760px; margin: 18px 0 0; }
+  .dark .intro { color: #cbd5e1; }
+  .grid { display: grid; gap: 22px; }
+  @media (min-width: 760px) { .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .dark .card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); box-shadow: none; }
+  .card p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+  .dark .card p { color: #cbd5e1; }
+  .notice { margin-top: 28px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 14px; padding: 20px 22px; }
+  .notice h3 { font-size: 17px; }
+  .notice ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
+  .notice li + li { margin-top: 4px; }
+
+  /* Modules */
+  .module-head { display: flex; gap: 16px; align-items: flex-start; }
+  .num { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--navy); color: var(--gold); font-weight: 700; font-size: 15px; margin-top: 12px; }
+  .dark .num { background: var(--gold); color: var(--navy); }
+  .pbi { margin-top: 32px; display: grid; gap: 26px; }
+  @media (min-width: 900px) { .pbi { grid-template-columns: 0.9fr 1fr 1.25fr; } }
+  .pbi p, .pbi li { font-size: 15px; color: var(--muted); }
+  .dark .pbi p, .dark .pbi li { color: #cbd5e1; }
+  .pbi p { margin: 0; }
+  .pbi ul { margin: 0; padding-left: 18px; }
+  .pbi li + li { margin-top: 6px; }
+  .pbi li b { color: var(--ink); font-weight: 600; }
+  .dark .pbi li b { color: #fff; }
+
+  /* Figures */
+  figure { margin: 0; }
+  .shots { margin-top: 34px; display: grid; gap: 18px; }
+  @media (min-width: 760px) { .shots.two { grid-template-columns: 1fr 1fr; } }
+  .shot { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 16px 40px -18px rgba(13,27,46,0.35); }
+  .dark .shot { border-color: rgba(255,255,255,0.12); box-shadow: 0 20px 50px -20px rgba(0,0,0,0.7); }
+  .shot button { all: unset; display: block; width: 100%; cursor: zoom-in; }
+  .shot button:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+  .shot img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+  figcaption { font-size: 13.5px; color: var(--faint); padding: 10px 14px 12px; border-top: 1px solid var(--line); background: #fff; }
+  .dark figcaption { background: #10223a; color: #a1a1aa; border-top-color: rgba(255,255,255,0.08); }
+
+  /* Tables */
+  .table-wrap { margin-top: 28px; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .dark .table-wrap { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .dark th, .dark td { border-bottom-color: rgba(255,255,255,0.08); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); font-weight: 600; background: #fbfaf7; }
+  .dark th { background: rgba(255,255,255,0.04); color: #a1a1aa; }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+
+  /* Steps strip */
+  .steps { margin: 30px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  @media (min-width: 760px) { .steps { grid-template-columns: repeat(5, 1fr); } }
+  .step { position: relative; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); border-radius: 14px; padding: 14px; }
+  .step .w { float: right; font: 12px ui-monospace, Menlo, monospace; background: rgba(255,255,255,0.1); border-radius: 999px; padding: 1px 8px; color: #e4e4e7; }
+  .step small { color: #a1a1aa; font-size: 12px; }
+  .step b { display: block; color: #fff; margin-top: 4px; }
+  .step p { margin: 4px 0 0; font-size: 13.5px; color: #cbd5e1; line-height: 1.5; }
+  .results { margin-top: 26px; display: grid; gap: 14px; }
+  @media (min-width: 760px) { .results { grid-template-columns: 1fr 1fr; } }
+  .result { border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); }
+  .result.reported { border-color: rgba(233,180,76,0.45); background: rgba(233,180,76,0.1); }
+  .result small { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #a1a1aa; }
+  .result.reported small { color: var(--gold); }
+  .result b { display: block; font-size: 30px; color: #fff; margin-top: 6px; font-weight: 600; }
+  .result p { margin: 6px 0 0; font-size: 14px; color: #cbd5e1; }
+
+  /* Interactive packing demo */
+  .packer { margin-top: 32px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px; }
+  .packer-controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+  .toggle { display: inline-flex; align-items: center; gap: 9px; font-size: 14.5px; cursor: pointer; user-select: none; }
+  .toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .toggle .sw { width: 36px; height: 20px; border-radius: 999px; background: #d4d4d8; position: relative; transition: background .15s; flex: none; }
+  .toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .toggle input:checked + .sw { background: var(--green); }
+  .toggle input:checked + .sw::after { transform: translateX(16px); }
+  .toggle input:focus-visible + .sw { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .page-count { margin-left: auto; font-weight: 600; font-size: 14px; background: var(--navy); color: #fff; padding: 5px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+  .mini-pages { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .mini { position: relative; width: 96px; aspect-ratio: 210 / 297; background: #fff; border: 1px solid #e4e4e7; border-radius: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+  .mini .band { height: 8%; }
+  .mini .body { padding: 3px 4px; }
+  .mini .rib { height: 4px; border-radius: 1px; margin: 3px 0 2px; }
+  .mini .cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .mini .cells span { height: 15px; border-radius: 1px; opacity: 0.85; }
+  .mini .pn { position: absolute; right: 4px; bottom: 2px; font-size: 8px; color: #a1a1aa; font-weight: 600; }
+  .legend { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--faint); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .hint { font-size: 13px; color: var(--faint); margin: 10px 0 0; }
+
+  /* Decisions */
+  .decisions { margin-top: 32px; display: grid; gap: 14px; }
+  @media (min-width: 760px) { .decisions { grid-template-columns: 1fr 1fr; } }
+  .decision { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .decision .tag { font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rust); }
+  .decision h3 { font-size: 17px; margin-top: 4px; }
+  .decision p { margin: 6px 0 0; font-size: 14.5px; color: var(--muted); }
+
+  .ba { margin-top: 30px; display: grid; gap: 16px; }
+  @media (min-width: 760px) { .ba { grid-template-columns: 1fr 1fr; } }
+  .ba ul { margin: 10px 0 0; padding-left: 20px; }
+  .ba li { font-size: 15px; color: var(--muted); }
+  .ba li + li { margin-top: 6px; }
+  .ba .after { border-color: #bfe3d3; background: #f3fbf7; }
+
+  pre { margin: 18px 0 0; background: #0b1626; color: #e4e4e7; padding: 18px 20px; border-radius: 14px; overflow-x: auto; font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre .c { color: #71717a; }
+  .routes { margin: 14px 0 0; padding-left: 20px; color: var(--muted); }
+  .routes li + li { margin-top: 4px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; font-size: 15px; padding: 10px 18px; border-radius: 999px; background: var(--gold); color: var(--navy); }
+  .btn:hover { background: #f2c56a; }
+  .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  .btn.ghost:hover { background: rgba(255,255,255,0.1); }
+  .btns { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+  footer { background: var(--navy); color: #a1a1aa; padding: 48px 0; font-size: 14px; }
+  footer p { margin: 0; max-width: 760px; }
+  footer p + p { margin-top: 10px; }
+  footer b { color: #fff; }
+
+  /* Lightbox */
+  dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: min(1400px, 96vw); max-height: 94vh; }
+  dialog.lightbox::backdrop { background: rgba(5,10,20,0.85); }
+  dialog.lightbox img { max-width: 100%; max-height: 86vh; border-radius: 10px; }
+  dialog.lightbox p { color: #e4e4e7; font-size: 14px; margin: 10px 4px 0; }
+  dialog.lightbox button { position: fixed; top: 14px; right: 18px; font: 600 15px Inter, sans-serif; background: #fff; color: var(--navy); border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="nav-pill">
+    <a class="brand" href="#top">Harbourline</a>
+    <a href="#problem">Problem</a>
+    <a href="#modules">Modules</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#decisions">Decisions</a>
+    <a href="#role">My role</a>
+    <a href="#run">Run it</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Case study · front-end focused full-stack</p>
+      <h1>A print-ready catalogue, built in the browser.</h1>
+      <p class="lead">For a UK food wholesaler’s internal sales portal I worked on the tools that turn a range of around 2,500 products into an A4 catalogue: a millimetre-exact page engine, a flyer editor whose prices and QR codes come from the product database, and a compressor that makes the finished PDF small enough to send.</p>
+      <p class="sub">The real code and data belong to the company, so this is a clean rebuild on the same stack around a fictional wholesaler, <b>Harbourline Wholesale</b>, with generated products, prices, photos and posters.</p>
+      <div class="stack-line" aria-label="Tech stack">
+        <span class="chip">Next.js 16</span><span class="chip">React 19</span><span class="chip">TypeScript</span><span class="chip">Tailwind CSS 4</span><span class="chip">dnd-kit</span><span class="chip">zod</span><span class="chip">pdf-lib</span><span class="chip">sharp</span><span class="chip">Vitest</span><span class="chip">GitHub Actions</span>
+      </div>
+      <div class="metrics">
+        <div class="metric"><b>61</b><span>A4 pages from one click</span></div>
+        <div class="metric"><b>565</b><span>generated products in the export</span></div>
+        <div class="metric"><b>32</b><span>automated tests, incl. property tests</span></div>
+        <div class="metric"><b>96%</b><span>smaller sample PDF (17.1 MB → 0.79 MB)</span></div>
+      </div>
+      <div class="btns">
+        <a class="btn" href="#modules">See the modules →</a>
+        <a class="btn ghost" data-repo href="https://github.com/Gucera">Source on GitHub</a>
+      </div>
+    </div>
+    <div class="hero-shot"><img src="img/hero-pages.webp" width="920" height="660" alt="Three pages produced by the demo: a navy catalogue cover, a product page with a 3 by 4 grid of rice products, and a Summer Grill flyer with product price boxes." /></div>
+  </div>
+</header>
+
+<main>
+
+<section class="block" id="problem">
+  <div class="wrap">
+    <p class="eyebrow">The problem</p>
+    <h2>Sales reps needed a catalogue that is never out of date.</h2>
+    <p class="intro">A catalogue put together by hand goes stale the day a price changes. The portal already held the products, prices and photos. The job was to turn them into pages that look designed, print exactly, and stay small enough to email to customers, without anyone touching code or a design tool.</p>
+    <div class="grid g4" style="margin-top:32px">
+      <div class="card"><h3>Exact A4</h3><p>Consistent margins and coloured bands on every page, printed straight from the browser.</p></div>
+      <div class="card"><h3>Hundreds of photos</h3><p>Some missing, some slow, one or two broken, and printing must not start before they arrive.</p></div>
+      <div class="card"><h3>No code for users</h3><p>Office staff change layout, covers and flyers with switches, sliders and drag and drop.</p></div>
+      <div class="card"><h3>Shareable output</h3><p>A browser-printed catalogue embeds full-size photos, so the PDF has to be shrunk before it is sent.</p></div>
+    </div>
+
+    <div class="notice">
+      <h3>What is real and what isn’t</h3>
+      <ul>
+        <li>The company, brands, products, prices, phone number and web address are invented. Product codes look like <code>HL-10001</code>.</li>
+        <li>Product photos and flyer posters are drawn by code (SVG), not taken from anywhere.</li>
+        <li>No code, data, screenshots, branding or documents from the real system are used. Every file was written for this rebuild.</li>
+        <li>Data lives in memory and resets on restart. There is no login and no cloud storage.</li>
+        <li>Numbers from the real system are marked <b>reported</b>. Every other number on this page was measured on the demo.</li>
+      </ul>
+    </div>
+
+    <div class="shots">
+      <figure class="shot"><button type="button" data-zoom><img src="img/dashboard.webp" width="1600" height="1000" loading="lazy" alt="Demo dashboard with catalogue stats and suggested things to try." /></button><figcaption>The demo portal’s dashboard. Two catalogues share one product range; the second is filtered by a price list.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="modules" style="padding-top:0">
+  <div class="wrap">
+    <div class="module-head">
+      <span class="num">01</span>
+      <div>
+        <p class="eyebrow">Module 1 · Catalogue engine and export page</p>
+        <h2>Pages are computed in millimetres, then drawn by React.</h2>
+      </div>
+    </div>
+    <div class="pbi">
+      <div>
+        <h4>Problem</h4>
+        <p>Categories have very different sizes. Starting every small subcategory on a new page wastes paper; cramming everything together makes a page nobody can scan. And the contents page needs page numbers that are only known at the end.</p>
+      </div>
+      <div>
+        <h4>What I built</h4>
+        <ul>
+          <li>An export page with collapsible sections for cover, layout, contents, products, cards and extras.</li>
+          <li>A one-page preview with a page list on the right and ←/→ keys to flip.</li>
+          <li><b>Save as PDF</b>: every page rendered as a real 210 × 297 mm box and printed by the browser.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Interesting bits</h4>
+        <ul>
+          <li><b>Pure layout functions.</b> No React or DOM inside: products and settings in, page models out. Preview, print and tests all use the same output.</li>
+          <li><b>Small shelves share a page.</b> A category always starts fresh. A small subcategory moves up under the previous one when at least one full row fits; the rest continues overleaf, marked “continued”.</li>
+          <li><b>Numbers from the final order.</b> Cover, contents, flyers and category covers are placed first, then every page is numbered once; the contents page links to each page in the PDF.</li>
+          <li><b>Settings that survive bad input.</b> Saved settings are parsed field by field with zod, so one stale value falls back to its default instead of breaking the page.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="packer" aria-labelledby="packer-title">
+      <h3 id="packer-title" style="font-size:17px">Try it: the packing rule, in miniature</h3>
+      <p class="hint" style="margin-top:4px">Two made-up categories with shelves of very different sizes, on a 3 × 4 grid. Switch packing on and off and watch the page count.</p>
+      <div class="packer-controls" style="margin-top:14px">
+        <label class="toggle"><input type="checkbox" id="opt-pack" checked /><span class="sw"></span>Small shelves share a page</label>
+        <label class="toggle"><input type="checkbox" id="opt-row" checked /><span class="sw"></span>New row per shelf</label>
+        <span class="page-count" id="page-count" aria-live="polite">— pages</span>
+      </div>
+      <div class="mini-pages" id="mini-pages"></div>
+      <ul class="legend" id="legend"></ul>
+      <p class="hint">A simplified copy of the rule for this page. The demo’s real engine also handles dividers, card heights and continuation labels, and is covered by property tests over 300 random catalogues.</p>
+    </div>
+
+    <div class="shots two">
+      <figure class="shot"><button type="button" data-zoom><img src="img/export-product.webp" width="1600" height="1000" loading="lazy" alt="Export page showing page 14 of 61: a Pulses and Beans page where Lentils continues and Dried Beans starts below it." /></button><figcaption>Page 14: “Lentils” continues from the page before and “Dried Beans” starts underneath instead of on a new page.</figcaption></figure>
+      <figure class="shot"><button type="button" data-zoom><img src="img/export-cover.webp" width="1600" height="1000" loading="lazy" alt="Export page with the navy cover design selected in the sidebar and the cover in the preview." /></button><figcaption>Three cover designs, dated with the export day. The sidebar shows a summary of each section when it is collapsed.</figcaption></figure>
+      <figure class="shot"><button type="button" data-zoom><img src="img/export-contents.webp" width="1600" height="1000" loading="lazy" alt="Contents page listing categories with page numbers." /></button><figcaption>The contents page reads its numbers from the final page list, so they are always right.</figcaption></figure>
+      <figure class="shot"><button type="button" data-zoom><img src="img/products.webp" width="1600" height="1000" loading="lazy" alt="Products screen with a folder tree of categories and subcategories on the left and product cards on the right." /></button><figcaption>Catalogue order is set by dragging folders, or with the keyboard (Space and arrow keys).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0">
+  <div class="wrap">
+    <div class="module-head">
+      <span class="num">02</span>
+      <div>
+        <p class="eyebrow">Module 2 · Photo loader and print check</p>
+        <h2>Hundreds of photos, six at a time, with a report before printing.</h2>
+      </div>
+    </div>
+    <div class="pbi">
+      <div>
+        <h4>Problem</h4>
+        <p>If every image starts loading at once, the photo host gets flooded and the print dialog opens over half-empty cards. Users then can’t tell a product that has no photo from one whose photo failed.</p>
+      </div>
+      <div>
+        <h4>What I built</h4>
+        <ul>
+          <li>One shared queue for every product photo in the app.</li>
+          <li>A check before printing that waits for the queue, then lists what is <b>missing</b> and what <b>failed</b>, with <b>Retry failed</b> and <b>Print anyway</b>.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Interesting bits</h4>
+        <ul>
+          <li><b>Six in flight, three tries.</b> Errors are retried with back-off; the page on screen jumps the queue.</li>
+          <li><b>Missing vs failed.</b> A 404 means “fix the data”; a server error means “try again”. They are reported separately because the fix is different.</li>
+          <li><b>Re-render only what changed.</b> Cards subscribe to their own photo with <code>useSyncExternalStore</code> and are memoised, so moving a slider doesn’t re-render hundreds of unchanged cards.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="shots">
+      <figure class="shot"><button type="button" data-zoom><img src="img/print-report.webp" width="1600" height="1000" loading="lazy" alt="Dialog titled Some photos are not available: 539 of 565 photos ready, 25 missing listed by code, 1 failed to load, with Cancel, Retry failed and Print anyway buttons." /></button><figcaption>The demo’s fake photo host is slow on purpose, has 25 products without a photo and one that always errors, so all three outcomes are visible.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block dark">
+  <div class="wrap">
+    <div class="module-head">
+      <span class="num">03</span>
+      <div>
+        <p class="eyebrow">Module 3 · Flyers and focal editor</p>
+        <h2>Product details on a poster, filled from the database.</h2>
+      </div>
+    </div>
+    <div class="pbi">
+      <div>
+        <h4>Problem</h4>
+        <p>Marketing makes promotional posters, and the catalogue prints them after the contents page. Typing prices onto a poster means they go wrong the moment the price list changes, and nobody notices a promoted product was discontinued.</p>
+      </div>
+      <div>
+        <h4>What I built</h4>
+        <ul>
+          <li>A flyer list: drag to reorder, suspend and resume, with a warning badge when a promoted product can no longer be sold.</li>
+          <li>A full-screen editor where staff search for a product and drop a “focal” on the poster: name, pack size, prices, code and QR code all come from the product record.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Interesting bits</h4>
+        <ul>
+          <li><b>Resolution-independent.</b> Each box is stored as x, y, width and height between 0 and 1 of the poster; text uses container query units, so the same focals print at any size.</li>
+          <li><b>Snapping with guides.</b> Edges and centres snap to the page and to other focals, with a threshold in screen pixels so it feels the same at every zoom. Alt turns it off.</li>
+          <li><b>Undo that behaves.</b> History is one state object capped at 40 steps; a whole drag is one entry. Ctrl+Z, Ctrl+Shift+Z, Ctrl+D, Delete and arrow nudging all work.</li>
+          <li><b>Price change warning.</b> Prices are a snapshot from when the focal was placed; the editor shows when the live price differs and offers a one-click refresh.</li>
+          <li><b>Optimistic, with rollback.</b> Reorder and suspend update at once and go back to the stored state if the server refuses.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="shots two">
+      <figure class="shot"><button type="button" data-zoom><img src="img/flyers.webp" width="1600" height="1000" loading="lazy" alt="Grid of six flyers; World Snacks is greyed out as suspended and Pantry Savers has a red warning badge." /></button><figcaption>Six flyers. “World Snacks” is suspended; “Pantry Savers” promotes a discontinued product and is flagged.</figcaption></figure>
+      <figure class="shot"><button type="button" data-zoom><img src="img/editor-drag.webp" width="1600" height="1000" loading="lazy" alt="Focal editor mid-drag: a product box being moved over the Summer Grill poster with a pink alignment guide line." /></button><figcaption>Mid-drag: the pink line is a snapping guide to another focal’s edge. The panel on the right shows prices, layout, theme and position in mm.</figcaption></figure>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Shortcut</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>Drag</code> / <code>Alt + drag</code></td><td>Move with snapping / move freely</td></tr>
+          <tr><td><code>←↑→↓</code> / <code>Shift + arrows</code></td><td>Nudge 1 px / 10 px</td></tr>
+          <tr><td><code>Ctrl + D</code></td><td>Duplicate the selected focal</td></tr>
+          <tr><td><code>Delete</code></td><td>Remove the selected focal</td></tr>
+          <tr><td><code>Ctrl + Z</code> / <code>Ctrl + Shift + Z</code></td><td>Undo / redo (40 steps)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="block dark" style="padding-top:0">
+  <div class="wrap">
+    <div class="module-head">
+      <span class="num">04</span>
+      <div>
+        <p class="eyebrow">Module 4 · PDF compression</p>
+        <h2>Shrink the PDF by resampling only what is too big.</h2>
+      </div>
+    </div>
+    <div class="pbi">
+      <div>
+        <h4>Problem</h4>
+        <p>A browser-printed catalogue embeds every photo at full resolution, even when it is printed 5 cm wide. The file is too big to email, and generic online compressors also blur text and QR codes.</p>
+      </div>
+      <div>
+        <h4>What I built</h4>
+        <ul>
+          <li>A compress page: upload with a progress bar, a five-step tracker, and a before/after result with a download.</li>
+          <li>A server job that reads the PDF’s drawing instructions to find each photo’s real printed size and resamples it to that, leaving text and vectors alone.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Interesting bits</h4>
+        <ul>
+          <li><b>Measure, don’t guess.</b> A small tokenizer follows the page’s transform matrix to learn how big each image is drawn, including images inside nested forms.</li>
+          <li><b>Predict before committing.</b> A spread-out sample of up to 40 photos is encoded at each quality level to choose one that should land under the target size.</li>
+          <li><b>Only replace what shrinks.</b> A photo that would not get at least 8% smaller keeps its original; transparency masks are resized with their image.</li>
+          <li><b>Safe uploads.</b> Streamed to a temp file with a running size cut-off, checked for a <code>%PDF-</code> signature, one job at a time, results expire after 20 minutes.</li>
+        </ul>
+      </div>
+    </div>
+    <ol class="steps" aria-label="Compression steps and their share of the progress bar">
+      <li class="step"><span class="w">15%</span><small>Step 1</small><b>Upload</b><p>Streamed to disk with a size check.</p></li>
+      <li class="step"><span class="w">7%</span><small>Step 2</small><b>Analyse</b><p>Sample photos predict the output size.</p></li>
+      <li class="step"><span class="w">63%</span><small>Step 3</small><b>Resample</b><p>Resize to drawn size × ppi, 2 to 8 at a time.</p></li>
+      <li class="step"><span class="w">10%</span><small>Step 4</small><b>Save</b><p>Swap only images that got smaller.</p></li>
+      <li class="step"><span class="w">5%</span><small>Step 5</small><b>Ready</b><p>One overall percentage, polled by the page.</p></li>
+    </ol>
+    <div class="results">
+      <div class="result reported"><small>In production · reported</small><b>≈ 300 MB → ≈ 30 MB</b><p>A typical full catalogue in the live system this rebuild is based on. Reported from that system, not reproduced here.</p></div>
+      <div class="result"><small>In this demo · measured</small><b>17.1 MB → 0.79 MB</b><p>The bundled 8-page sample with 72 photos, saved far above print resolution on purpose. All 72 photos resampled to 200 ppi in one pass.</p></div>
+    </div>
+    <div class="shots">
+      <figure class="shot"><button type="button" data-zoom><img src="img/compress.webp" width="1600" height="1000" loading="lazy" alt="Compress page with a finished job: all five steps ticked, before 17.1 MB, after 787 KB, 96 percent smaller." /></button><figcaption>The sample catalogue after compression: 72 of 72 photos resampled, 96% smaller.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="architecture">
+  <div class="wrap">
+    <p class="eyebrow">Architecture</p>
+    <h2>Thin route handlers, pure modules, one source of truth for pages.</h2>
+    <p class="intro">Server components read the catalogue and hand it to one client component per screen, so the first paint already has data. Everything that can be a pure function is one, which is what makes it testable.</p>
+    <div class="card" style="margin-top:30px;padding:16px">
+      <svg viewBox="0 0 900 360" width="100%" role="img" aria-label="Architecture: browser screens call route handlers; shared pure modules do layout, snapping and photo queueing; route handlers validate with zod and run the compression job; storage is an in-memory store and temp files; output is a browser-printed A4 PDF.">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#71717a"/></marker></defs>
+        <g font-family="Inter, Arial, sans-serif">
+          <rect x="10" y="20" width="270" height="320" rx="16" fill="#f4f4f5"/>
+          <text x="30" y="50" font-size="14" font-weight="700" fill="#18181b">Browser · React 19</text>
+          <rect x="30" y="70" width="230" height="46" rx="10" fill="#fff" stroke="#d4d4d8"/><text x="45" y="98" font-size="12" fill="#27272a">Export page · sidebar, preview, print</text>
+          <rect x="30" y="132" width="230" height="46" rx="10" fill="#fff" stroke="#d4d4d8"/><text x="45" y="160" font-size="12" fill="#27272a">Flyer list + focal editor</text>
+          <rect x="30" y="194" width="230" height="46" rx="10" fill="#fff" stroke="#d4d4d8"/><text x="45" y="222" font-size="12" fill="#27272a">Products + folder order (dnd-kit)</text>
+          <rect x="30" y="256" width="230" height="46" rx="10" fill="#fff" stroke="#d4d4d8"/><text x="45" y="284" font-size="12" fill="#27272a">Compress · XHR upload, polling</text>
+          <rect x="320" y="20" width="250" height="150" rx="16" fill="#0d1b2e"/>
+          <text x="340" y="50" font-size="14" font-weight="700" fill="#fff">Pure modules (shared)</text>
+          <text x="340" y="82" font-size="12" fill="#cbd5e1">layout.ts · packPages, buildToc</text>
+          <text x="340" y="110" font-size="12" fill="#cbd5e1">snap.ts · snapRect, clampRect</text>
+          <text x="340" y="138" font-size="12" fill="#cbd5e1">photo-queue.ts · queued loader</text>
+          <rect x="320" y="190" width="250" height="150" rx="16" fill="#fff" stroke="#d4d4d8"/>
+          <text x="340" y="220" font-size="14" font-weight="700" fill="#18181b">Route handlers · Node</text>
+          <text x="340" y="252" font-size="12" fill="#3f3f46">zod-validated JSON APIs</text>
+          <text x="340" y="280" font-size="12" fill="#3f3f46">streaming upload + job queue</text>
+          <text x="340" y="308" font-size="12" fill="#3f3f46">compress-pdf.ts · pdf-lib + sharp</text>
+          <rect x="610" y="20" width="270" height="150" rx="16" fill="#fff" stroke="#e9b44c" stroke-width="1.5"/>
+          <text x="630" y="50" font-size="14" font-weight="700" fill="#18181b">Output</text>
+          <text x="630" y="82" font-size="12" fill="#3f3f46">window.print() → A4 PDF</text>
+          <text x="630" y="110" font-size="12" fill="#3f3f46">vector text, internal links</text>
+          <text x="630" y="138" font-size="12" fill="#3f3f46">→ optional compression job</text>
+          <rect x="610" y="190" width="270" height="150" rx="16" fill="#f4f4f5"/>
+          <text x="630" y="220" font-size="14" font-weight="700" fill="#18181b">Storage</text>
+          <text x="630" y="252" font-size="12" fill="#3f3f46">Demo: seeded in-memory store,</text>
+          <text x="630" y="272" font-size="12" fill="#3f3f46">temp files for jobs</text>
+          <text x="630" y="300" font-size="12" fill="#3f3f46">Original: database + object storage</text>
+          <path d="M280 130 H315" stroke="#71717a" stroke-width="1.5" marker-end="url(#ar)"/>
+          <path d="M280 260 H315" stroke="#71717a" stroke-width="1.5" marker-end="url(#ar)"/>
+          <path d="M570 95 H605" stroke="#71717a" stroke-width="1.5" marker-end="url(#ar)"/>
+          <path d="M570 265 H605" stroke="#71717a" stroke-width="1.5" marker-end="url(#ar)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Choices</th></tr></thead>
+        <tbody>
+          <tr><td><b>Frontend</b></td><td>Next.js App Router, React 19, TypeScript, Tailwind CSS 4, dnd-kit (pointer + keyboard), container query units, print CSS (<code>@page</code>, <code>break-after</code>)</td></tr>
+          <tr><td><b>Backend</b></td><td>Route handlers on Node, zod on every request body, streamed uploads, an in-process job queue with polling</td></tr>
+          <tr><td><b>PDF</b></td><td>Browser print for output; pdf-lib to read and rewrite, sharp to resample images</td></tr>
+          <tr><td><b>Quality</b></td><td>Vitest (unit + property tests), ESLint, strict TypeScript, CI on GitHub Actions: lint, typecheck, test, build</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="decisions" style="padding-top:0">
+  <div class="wrap">
+    <p class="eyebrow">Key decisions</p>
+    <h2>The calls that shaped it.</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">Print</span><h3>Browser print over a PDF library</h3><p>Pages are HTML at exact mm sizes, so text stays text: searchable, sharp QR codes, internal links from the contents page. The cost is depending on Chrome’s print engine, which is stated as a limit.</p></div>
+      <div class="decision"><span class="tag">Layout</span><h3>Millimetres, not pixels</h3><p>Card sizes are derived from 210 × 297 mm minus header, footer and gaps. Make the header taller and the cards get shorter; nothing overflows.</p></div>
+      <div class="decision"><span class="tag">Layout</span><h3>Dividers paid for by height</h3><p>A subcategory ribbon costs space. Cards on that page get slightly shorter (never below 85%) instead of a whole row being dropped.</p></div>
+      <div class="decision"><span class="tag">Testing</span><h3>Property tests for the engine</h3><p>Over 300 random catalogues per option set: every product appears once and in order, no page has more rows than the grid, categories never share a page.</p></div>
+      <div class="decision"><span class="tag">Flyers</span><h3>Store geometry as fractions</h3><p>0..1 of the poster instead of pixels, so a focal placed on a laptop prints in the same place on A4.</p></div>
+      <div class="decision"><span class="tag">Flyers</span><h3>Snapshot prices, warn on change</h3><p>A flyer is a promise made on a date. The price is kept from placement, and the editor shows when the live price differs instead of silently changing a printed offer.</p></div>
+      <div class="decision"><span class="tag">Photos</span><h3>One queue, two kinds of failure</h3><p>Missing and failed photos need different fixes, so the print check reports them separately and only offers a retry for failures.</p></div>
+      <div class="decision"><span class="tag">Compression</span><h3>Resample to printed size</h3><p>The target resolution comes from how big a photo is drawn on the page, not a fixed pixel width, so small thumbnails shrink a lot and full-page photos keep their detail.</p></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:72px">Before and after</p>
+    <h2>What changes for the people using it.</h2>
+    <div class="ba">
+      <div class="card"><h3>Without the tool</h3><ul><li>Prices and codes retyped into a design file.</li><li>The whole document re-flowed by hand when the range changes.</li><li>Posters printed with whatever price was typed on them.</li><li>Large PDFs sent through an online compressor.</li></ul></div>
+      <div class="card after"><h3>With the tool</h3><ul><li>The catalogue is generated from the product data, with covers and contents.</li><li>Layout changes are switches and sliders, previewed page by page.</li><li>Flyer prices come from the product record, with warnings for discontinued lines and price changes.</li><li>Compression runs inside the portal and keeps text sharp.</li></ul></div>
+    </div>
+    <p class="hint">This compares workflows. It is not a measured time saving.</p>
+  </div>
+</section>
+
+<section class="block dark" id="role">
+  <div class="wrap">
+    <p class="eyebrow">My role</p>
+    <h2>What I did on the real system.</h2>
+    <div class="grid g2" style="margin-top:28px">
+      <div>
+        <p class="intro" style="margin-top:0">I was a junior developer in a two-person team, working mostly on the front end (roughly 60% front end, 30% back end, 10% database and deployment). My manager reviewed every pull request.</p>
+        <p class="intro">On the real portal I built the flyer list and the focal editor, worked on the catalogue export page, and built the PDF compression feature. I used an AI coding assistant for parts of the work, mainly the compression feature; I reviewed and shipped what went in.</p>
+      </div>
+      <div class="card">
+        <h3>What this rebuild does better</h3>
+        <ul style="margin:10px 0 0;padding-left:20px;color:#cbd5e1;font-size:15px">
+          <li>Unit and property tests, and CI. The original had no automated tests.</li>
+          <li>Uploads streamed to disk with a size cut-off, instead of buffered in memory.</li>
+          <li>Focals warn when a price changes; the original kept the old price silently.</li>
+          <li>Keyboard-sortable lists, and dialogs that trap focus and close on Escape.</li>
+        </ul>
+        <h3 style="margin-top:22px">What I’d do next</h3>
+        <ul style="margin:10px 0 0;padding-left:20px;color:#cbd5e1;font-size:15px">
+          <li>Store jobs in a database table so a restart doesn’t lose them.</li>
+          <li>Visual regression tests of printed pages with Playwright.</li>
+          <li>Let the contents page flow onto a second page for larger ranges.</li>
+          <li>Automated accessibility checks in CI.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="run">
+  <div class="wrap">
+    <p class="eyebrow">Run it yourself</p>
+    <h2>Two commands, then open localhost.</h2>
+    <p class="intro">No accounts, keys or database. The data is seeded in memory when the server starts. Node 20 or newer.</p>
+    <pre><code><span class="c"># install and start</span>
+npm install
+npm run dev          <span class="c"># http://localhost:3000</span>
+
+<span class="c"># checks (the same ones CI runs)</span>
+npm run lint
+npm run typecheck
+npm test
+npm run build</code></pre>
+    <p class="intro" style="font-size:16px">Good places to start:</p>
+    <ul class="routes">
+      <li><code>/demo/catalogues/main/export</code> · the catalogue builder; press <b>Save as PDF</b></li>
+      <li><code>/demo/catalogues/main/flyers/fl-grill</code> · the focal editor</li>
+      <li><code>/demo/catalogues/main/flyers</code> · flyer list with warnings and suspend</li>
+      <li><code>/demo/compress</code> · press <b>Use the sample catalogue</b></li>
+    </ul>
+    <div class="btns"><a class="btn" data-repo href="https://github.com/Gucera">View the source on GitHub →</a></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>Harbourline Catalogue Studio</b> is a portfolio rebuild by Yavuz.</p>
+    <p>Harbourline Wholesale is fictional. All products, prices, photos, posters and names are generated, and no code, data, branding or documents from the real company are used. Fonts: Inter and Cormorant Garamond (SIL Open Font License), served by Google Fonts.</p>
+  </div>
+</footer>
+
+<dialog class="lightbox" id="lightbox" aria-label="Screenshot">
+  <button type="button" id="lightbox-close">Close ✕</button>
+  <img alt="" id="lightbox-img" />
+  <p id="lightbox-cap"></p>
+</dialog>
+
+<script>
+  // Point "source" links at this repo when served from <user>.github.io/<repo>/.
+  (function () {
+    var host = location.hostname;
+    if (!/\.github\.io$/.test(host)) return;
+    var user = host.split('.')[0];
+    var repo = location.pathname.split('/').filter(Boolean)[0];
+    var url = 'https://github.com/' + user + (repo ? '/' + repo : '');
+    document.querySelectorAll('[data-repo]').forEach(function (a) { a.href = url; });
+  })();
+
+  // Screenshot lightbox.
+  (function () {
+    var dlg = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    var cap = document.getElementById('lightbox-cap');
+    if (!dlg.showModal) return;
+    document.querySelectorAll('[data-zoom]').forEach(function (btn) {
+      btn.setAttribute('aria-label', 'Enlarge screenshot');
+      btn.addEventListener('click', function () {
+        var src = btn.querySelector('img');
+        var fc = btn.parentElement.querySelector('figcaption');
+        img.src = src.src; img.alt = src.alt; cap.textContent = fc ? fc.textContent : '';
+        dlg.showModal();
+      });
+    });
+    document.getElementById('lightbox-close').addEventListener('click', function () { dlg.close(); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+  })();
+
+  // Highlight the current section in the nav.
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav-pill a[href^="#"]'));
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    links.forEach(function (l) { var t = document.querySelector(l.getAttribute('href')); if (t && t.id !== 'top') io.observe(t); });
+  })();
+
+  // Mini packing demo: a simplified copy of the engine's rule.
+  (function () {
+    var SHELVES = [
+      { cat: 0, label: 'Ground Spices', n: 10 }, { cat: 0, label: 'Whole Spices', n: 5 }, { cat: 0, label: 'Spice Blends', n: 3 },
+      { cat: 0, label: 'Salt & Stock', n: 2 }, { cat: 0, label: 'Dried Herbs', n: 4 }, { cat: 1, label: 'Hot Sauces', n: 4 }, { cat: 1, label: 'Pickles', n: 5 }
+    ];
+    var COLORS = ['#2b8cc4', '#e9822f', '#7cb342', '#c2457a', '#7b4fb0', '#d9483b', '#2e9e83'];
+    var BANDS = ['#7fa7b5', '#d99a7e'];
+    var COLS = 3, ROWS = 4;
+    var pack = document.getElementById('opt-pack'), row = document.getElementById('opt-row');
+    var out = document.getElementById('mini-pages'), count = document.getElementById('page-count');
+
+    function layout() {
+      var pages = [], page = null, used = 0;
+      function newPage(cat) { page = { cat: cat, blocks: [] }; pages.push(page); used = 0; }
+      SHELVES.forEach(function (s, i) {
+        var left = s.n;
+        var mustBreak = !page || page.cat !== s.cat || !pack.checked;
+        if (!mustBreak) {
+          var start = row.checked ? Math.ceil(used / COLS) * COLS : used;
+          var free = ROWS * COLS - start;
+          if (free < COLS) mustBreak = true; else used = start;
+        }
+        if (mustBreak) newPage(s.cat);
+        while (left > 0) {
+          var cap = ROWS * COLS - used;
+          if (cap <= 0) { newPage(s.cat); cap = ROWS * COLS; }
+          var take = Math.min(left, cap);
+          page.blocks.push({ shelf: i, n: take });
+          used += take; left -= take;
+          if (row.checked && left === 0) used = Math.ceil(used / COLS) * COLS;
+        }
+      });
+      return pages;
+    }
+
+    function render() {
+      row.disabled = !pack.checked;
+      row.parentElement.style.opacity = pack.checked ? '1' : '0.45';
+      var pages = layout();
+      count.textContent = pages.length + ' pages';
+      out.innerHTML = '';
+      pages.forEach(function (p, pi) {
+        var el = document.createElement('div');
+        el.className = 'mini';
+        var html = '<div class="band" style="background:' + BANDS[p.cat] + '"></div><div class="body">';
+        p.blocks.forEach(function (b) {
+          html += '<div class="rib" style="background:' + COLORS[b.shelf] + '"></div><div class="cells">';
+          for (var k = 0; k < b.n; k++) html += '<span style="background:' + COLORS[b.shelf] + '"></span>';
+          html += '</div>';
+        });
+        el.innerHTML = html + '</div><span class="pn">' + (pi + 1) + '</span>';
+        el.setAttribute('aria-label', 'Page ' + (pi + 1) + ': ' + p.blocks.map(function (b) { return SHELVES[b.shelf].label + ' (' + b.n + ')'; }).join(', '));
+        el.setAttribute('role', 'img');
+        out.appendChild(el);
+      });
+    }
+    document.getElementById('legend').innerHTML = SHELVES.map(function (s, i) { return '<li><i style="background:' + COLORS[i] + '"></i>' + s.label + ' (' + s.n + ')</li>'; }).join('');
+    pack.addEventListener('change', render); row.addEventListener('change', render);
+    render();
+  })();
+</script>
+</body>
+</html>

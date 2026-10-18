@@ -4,6 +4,10 @@ A working re-implementation of an internal tool I built for a food wholesaler: i
 
 The original runs on private company data and infrastructure, so it can't be shown. This repository rebuilds the same ideas with the same stack on a fictional wholesaler, **Harbourline Wholesale**. Every product, price, photo, flyer and name in here is generated. No code, data or assets were copied from the original.
 
+## Case study page
+
+A standalone write-up with screenshots lives in [`case-study/index.html`](case-study/index.html). It is plain HTML with no build step, so GitHub Pages can serve it (Settings → Pages → Branch: `main`, folder `/ (root)`); it then opens at `https://<user>.github.io/<repo>/case-study/`.
+
 ## What to look at
 
 | Screen | What it shows |
